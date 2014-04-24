@@ -56,7 +56,7 @@
         data.push(docs.rows[i]);
       }
     }
-
+    
     var varNames = ["basic-inserts", "all-docs-skip-limit",
       "all-docs-startkey-endkey", "basic-gets",
       "bulk-inserts"
