@@ -56,6 +56,7 @@
         data.push(docs.rows[i]);
       }
     }
+
     var varNames = ["basic-inserts", "all-docs-skip-limit",
       "all-docs-startkey-endkey", "basic-gets",
       "bulk-inserts"
@@ -66,6 +67,7 @@
       return {
         name: name,
         durations: data.map(function (d) {
+          console.log(d);
           return {
             name: name,
             date: d.doc.date,
