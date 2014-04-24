@@ -45,34 +45,45 @@
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
-  d3.json("data.json", function (error, data) {
+  //read live data from cloudant
+  var db = new PouchDB('http://pouchdb.cloudant.com/performance_results');
+  db.allDocs({"include_docs": true}).then(function(docs) {
   
-    data.sort(function (a, b) {
-      return a.date > b.date
-    });
-  
+    var data = new Array();
+    for (var i = 0; i < docs.rows.length; i++) {
+      if (docs.rows[i].doc.branch === 'master' &&
+          !docs.rows[i].doc.pull_request) {
+        data.push(docs.rows[i]);
+      }
+    }
+    
+    /*data.sort(function (a, b) {
+      return a.doc.date > b.doc.date
+    });*/
+    
     var varNames = ["basic-inserts", "all-docs-skip-limit",
       "all-docs-startkey-endkey", "basic-gets",
       "bulk-inserts"
     ];
-  
     color.domain(varNames);
   
     var resultsData = varNames.map(function (name) {
       return {
         name: name,
         durations: data.map(function (d) {
+          console.log(d);
           return {
             name: name,
-            date: d.date,
-            duration: d[name].duration
+            date: d.doc.date,
+            duration: d.doc[name].duration
           };
         })
       };
     });
   
     x.domain(data.map(function (d) {
-      return d.date;
+      var da = new Date(d.doc.date)
+      return da.getTime();
     }));
   
     y.domain([
@@ -126,7 +137,8 @@
       .enter().append("circle")
       .attr("class", "point")
       .attr("cx", function (d) {
-        return x(d.date) + x.rangeBand() / 2;
+        var da = new Date(d.date)
+        return x(da.getTime()) + x.rangeBand() / 2;
       })
       .attr("cy", function (d) {
         return y(d.duration);
