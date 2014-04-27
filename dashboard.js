@@ -3,7 +3,7 @@
   var margin = {
     top: 25,
     right: 100,
-    bottom: 25,
+    bottom: 100,
     left: 100
   },
     width = 800,
@@ -19,7 +19,7 @@
     .scale(x)
     .orient("bottom")
     .tickFormat(function (d) {
-      var format = d3.time.format("%x-%X");
+      var format = d3.time.format("%x - %H:%m");
       return format(new Date(d));
     });
   
@@ -103,7 +103,14 @@
     svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
+      .call(xAxis)
+      .selectAll("text")  
+        .style("text-anchor", "end")
+        .attr("dx", "-1em")
+        .attr("dy", ".15em")
+        .attr("transform", function(d) {
+            return "rotate(-30)" 
+            });
   
     svg.append("g")
       .attr("class", "y axis")
@@ -113,7 +120,7 @@
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("Duration");
+      .text("Duration (ms)");
   
     var results = svg.selectAll(".results")
       .data(resultsData)
