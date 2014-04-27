@@ -9,8 +9,8 @@
     width = 800,
     height = 400;
     
-  var x = d3.scale.ordinal()
-    .rangeRoundBands([0, width], .1);
+  var x = d3.time.scale()
+    .range([0,width])
   
   var y = d3.scale.linear()
     .rangeRound([height, 0]);
@@ -19,7 +19,7 @@
     .scale(x)
     .orient("bottom")
     .tickFormat(function (d) {
-      var format = d3.time.format("%x - %H:%m");
+      var format = d3.time.format("%B %d - %I %p");
       return format(new Date(d));
     });
   
@@ -30,7 +30,7 @@
   var line = d3.svg.line()
     .interpolate("linear")
     .x(function (d) {
-      return x((new Date(d.date)).getTime()) + x.rangeBand() / 2;
+      return x((new Date(d.date)).getTime())
     })
     .y(function (d) {
       return y(d.duration);
@@ -60,7 +60,7 @@
         data.push(docs.rows[i]);
       }
     }
-    
+  
     var varNames = ["basic-inserts", "all-docs-skip-limit",
       "all-docs-startkey-endkey", "basic-gets",
       "bulk-inserts"
@@ -71,7 +71,6 @@
       return {
         name: name,
         details: data.map(function (d) {
-          console.log(d);
           return {
             name: name,
             date: d.doc.date,
@@ -84,10 +83,25 @@
       };
     });
   
-    x.domain(data.map(function (d) {
-      var da = new Date(d.doc.date)
-      return da.getTime();
-    }));
+    x.domain([
+      d3.min(resultsData, function (c) {
+        return d3.min(c.details, function (d) {
+          date = new Date(d.date);
+          date.setHours(0);
+          date.setMinutes(0);
+          return date.getTime();
+        });
+      }),
+      d3.max(resultsData, function (c) {
+        return d3.max(c.details, function (d) {
+          date = new Date(d.date);
+          date.setHours(0);
+          date.setMinutes(0);
+          date.setDate(date.getDate() + 1);
+          return date.getTime();
+        });
+      })
+    ]);
   
     y.domain([
       d3.min(resultsData, function (c) {
@@ -140,7 +154,7 @@
       .style("stroke-width", "1px")
       .style("fill", "none")
 	
-	function formatDetails(d) {
+    function formatDetails(d) {
       details = [];
       duration = "Duration: " + d.duration;
       branch = "Branch: " + d.branch;
@@ -166,7 +180,7 @@
       .attr("class", "point")
       .attr("cx", function (d) {
         var da = new Date(d.date)
-        return x(da.getTime()) + x.rangeBand() / 2;
+        return x(da.getTime());
       })
       .attr("cy", function (d) {
         return y(d.duration);
