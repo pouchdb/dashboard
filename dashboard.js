@@ -45,6 +45,10 @@
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
+  var tooltip = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
+  
   //read live data from cloudant
   var db = new PouchDB('http://pouchdb.cloudant.com/performance_results');
   db.allDocs({"include_docs": true}).then(function(docs) {
@@ -65,11 +69,14 @@
     var resultsData = varNames.map(function (name) {
       return {
         name: name,
-        durations: data.map(function (d) {
+        details: data.map(function (d) {
           return {
             name: name,
             date: d.doc.date,
-            duration: d.doc[name].duration
+            duration: d.doc[name].duration,
+            branch: d.doc.branch,
+            client: d.doc.client,
+            commit: d.doc.commit.substr(0,6)
           };
         })
       };
@@ -82,12 +89,12 @@
   
     y.domain([
       d3.min(resultsData, function (c) {
-        return d3.min(c.durations, function (d) {
+        return d3.min(c.details, function (d) {
           return d.duration;
         });
       }),
       d3.max(resultsData, function (c) {
-        return d3.max(c.durations, function (d) {
+        return d3.max(c.details, function (d) {
           return d.duration;
         });
       })
@@ -116,17 +123,35 @@
     results.append("path")
       .attr("class", "line")
       .attr("d", function (d) {
-        return line(d.durations);
+        return line(d.details);
       })
       .style("stroke", function (d) {
         return color(d.name);
       })
       .style("stroke-width", "1px")
       .style("fill", "none")
-  
+	
+	function formatDetails(d) {
+      details = [];
+      duration = "Duration: " + d.duration;
+      branch = "Branch: " + d.branch;
+      commit = "Commit: " + d.commit;
+      if (d.client.engine != undefined) {
+        engine = "Engine: " + d.client.engine.name +" "+ d.client.engine.version;
+        browser = "Browser: " + d.client.browser.name +" "+ d.client.browser.version;
+        details = [duration, branch, commit, engine, browser];
+      }
+      else {
+        client = "Client: " + d.client;
+        details = [duration, branch, commit, client];
+      }
+      details = details.join("<br>");
+      return details;
+    }
+	
     results.selectAll(".point")
       .data(function (d) {
-        return d.durations;
+        return d.details;
       })
       .enter().append("circle")
       .attr("class", "point")
@@ -141,6 +166,24 @@
       .style("fill", function (d) {
         return color(d.name);
       })
+      .on("mouseover", function(d) {
+        var details = formatDetails(d);
+        tooltip.transition()
+          .duration(250)
+          .style("opacity", .9);
+        tooltip.html(details)
+          .style("left", (d3.event.pageX - 30) + "px")
+          .style("top", (d3.event.pageY + 15) + "px");
+        d3.select(this)
+          .attr("r", "4px");
+      })
+      .on("mouseout", function(d) {
+        tooltip.transition()
+          .duration(250)
+          .style("opacity", 0);
+        d3.select(this)
+          .attr("r", "3px");
+      });
   
     var legend = svg.selectAll(".legend")
       .data(varNames.slice().reverse())
