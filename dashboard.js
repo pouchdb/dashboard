@@ -66,7 +66,6 @@
       return {
         name: name,
         durations: data.map(function (d) {
-          console.log(d);
           return {
             name: name,
             date: d.doc.date,
