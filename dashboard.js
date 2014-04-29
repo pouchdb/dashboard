@@ -61,10 +61,17 @@
       }
     }
 
-    var varNames = ["basic-inserts", "all-docs-skip-limit",
-      "all-docs-startkey-endkey", "basic-gets",
-      "bulk-inserts"
-    ];
+    var varNames = (function () {
+      var item = data[0].doc;
+      var arr = [];
+      for (var key in item) {
+        if (item.hasOwnProperty(key) && item[key].duration != undefined) {
+          arr.push(key);
+        }
+      }
+      return arr;
+    })();
+
     color.domain(varNames);
   
     var resultsData = varNames.map(function (name) {
