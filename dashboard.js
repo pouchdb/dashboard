@@ -60,7 +60,7 @@
         data.push(docs.rows[i]);
       }
     }
-
+    
     var varNames = (function () {
       var item = data[0].doc;
       var arr = [];
@@ -72,7 +72,28 @@
       }
       return arr;
     })();
-
+    
+    var browsers = {};
+    for (var i = 0; i < data.length; i++) {
+      if (data[i].doc.client.userAgent) {
+        browsers[data[i].doc.client.userAgent] = data[i].doc.client;
+      }
+    }
+    
+    var box = document.getElementById("combo_box");
+    var first = true;
+    for (var key in browsers) {
+      var element = document.createElement("option");
+      element.value = key;
+      element.innerHTML = key;
+      box.appendChild(element);
+    }
+      var element = document.createElement("option");
+      element.value = 'sdkf';
+      element.innerHTML = 'sdf';
+      box.appendChild(element);
+    
+    
     color.domain(varNames);
   
     var resultsData = varNames.map(function (name) {
@@ -240,4 +261,9 @@
       });
   
   });
+
 })();
+
+function updateData(value) {
+  console.log(value);
+}
